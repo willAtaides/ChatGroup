@@ -13,13 +13,22 @@ public class ClientHandler implements Runnable {
 	private BufferedWriter bufferedWriter;
 	private String clientUsername;
 
+// Construtor que recebe um objeto Socket para lidar com um cliente
 	public ClientHandler(Socket socket) {
 		try {
 			this.socket = socket;
+
+// Configura os fluxos de entrada e saída para comunicação com o cliente			
 			this.bufferedWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
 			this.bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+// Lê o nome de usuário do cliente			
 			this.clientUsername = bufferedReader.readLine();
+
+// Adiciona este ClientHandler à lista de manipuladores de cliente			
 			clientHandlers.add(this);
+
+// Envia uma mensagem para todos os clientes informando que este cliente entrou no chat			
 			broadcastMessage("SERVER: " + clientUsername + " entrou no chat!");
 		} catch (IOException e) {
 			closeEverything(socket, bufferedReader, bufferedWriter);
@@ -31,7 +40,11 @@ public class ClientHandler implements Runnable {
 		String messageFromClient;
 		while (socket.isConnected()) {
 			try {
+
+// Lê as mensagens do cliente				
 				messageFromClient = bufferedReader.readLine();
+
+// Envia a mensagem para todos os outros clientes				
 				broadcastMessage(messageFromClient);
 			} catch (IOException e) {
 				closeEverything(socket, bufferedReader, bufferedWriter);
@@ -40,6 +53,7 @@ public class ClientHandler implements Runnable {
 		}
 	}
 
+// Método para transmitir uma mensagem para todos os clientes
 	public void broadcastMessage(String messageToSend) {
 		for (ClientHandler clientHandler : clientHandlers) {
 			try {
@@ -54,11 +68,13 @@ public class ClientHandler implements Runnable {
 		}
 	}
 
+// Método para remover este ClientHandler da lista e informar que o cliente saiu do chat
 	public void removeClientHandler() {
 		clientHandlers.remove(this);
 		broadcastMessage("SERVER: " + clientUsername + " saiu do chat!");
 	}
 
+// Método para fechar todos os recursos associados ao cliente
 	public void closeEverything(Socket socket, BufferedReader bufferedReader, BufferedWriter bufferedWriter) {
 		removeClientHandler();
 		try {
